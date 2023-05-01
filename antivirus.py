@@ -45,7 +45,7 @@ def DecodeKMD(fname):
 # virus.kmd 파일에서 악성코드 패턴을 읽는다.
 def LoadVirusDB():
     buf = DecodeKMD('virus.kmd') # 악성코드 패턴을 복호화 한다.
-    fp = StringIO(buf.encode("utf-8").decode("utf-8"))
+    fp = StringIO(buf)
     
     while True:
         line = fp.readline() # 악성코드 패턴을 한 줄 읽는다.
@@ -89,7 +89,7 @@ if __name__ == "__main__" :
     # 커맨드라인의 입력 방식을 체크한다.
     if len(sys.argv) != 2:
         print("Usage : antivirus.py [file]")
-        exit(0)
+        sys.exit(0)
         
     fname = sys.argv[1] # 악성코드 검사 대상 파일
     
