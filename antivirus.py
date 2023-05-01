@@ -6,6 +6,7 @@ import zlib
 from io import StringIO
 import scanmod
 import curemod
+import imp
 
 VirusDB = [] # 악성코드 패턴은 모두 virus.kmd에 존재함
 vdb = [] # 가공된 악성코드 DB가 저장된다.
@@ -45,7 +46,8 @@ def DecodeKMD(fname):
 # virus.kmd 파일에서 악성코드 패턴을 읽는다.
 def LoadVirusDB():
     buf = DecodeKMD('virus.kmd') # 악성코드 패턴을 복호화 한다.
-    fp = StringIO(buf)
+    # fp = StringIO(buf)
+    fp = StringIO(buf.encode("utf8").decode("utf8"))
     
     while True:
         line = fp.readline() # 악성코드 패턴을 한 줄 읽는다.
@@ -80,7 +82,6 @@ def MakeVirusDB() :
             sdb.append(t) # 최종 sdb에 저장한다.
             
 
-
 if __name__ == "__main__" :
     LoadVirusDB() # 악성코드 패턴을 파일에서 읽는다.
     MakeVirusDB() # 악성코드 DB를 가공한다.
@@ -93,7 +94,16 @@ if __name__ == "__main__" :
         
     fname = sys.argv[1] # 악성코드 검사 대상 파일
     
-    ret, vname = scanmod.ScanVirus(vdb, vsize, sdb, fname) # 악성코드를 검사한다.
+    try:
+        m = 'scanmod' # 동적 로딩할 모듈의 이름(파일 이름)
+        f, filename, desc = imp.find_module(m, ['']) # 현재 폴더에서 모듈을 찾음
+        module = imp.load_module(m, f, filename, desc) # 찾은 모듈을 로딩함
+        # 진단 함수 호출 명령어 구성 작업
+        cmd = 'ret, vname = module.ScanVirus(vdb, vsize, sdb, fname)'
+        exec(cmd) # 명령어 실행
+    except ImportError:
+        ret, vname = scanmod.ScanVirus(vdb, vsize, sdb, fname) # 악성코드를 검사한다.
+
     if ret == True:
         print("%s : %s" %(fname, vname))
         curemod.CureDelete(fname) # 파일을 삭제하여 치료
